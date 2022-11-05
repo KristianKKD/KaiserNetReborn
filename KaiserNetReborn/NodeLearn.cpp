@@ -10,29 +10,29 @@ int step = 0;
 int edges = 0;
 
 void Learn() {
-	double oldError = GetError();
+	double oldError = GetError(); //get current error for comparison later
 
 	vector<Edge*> changedEdges = RandomUpdate();
-	UpdateHeldValues();
+	UpdateHeldValues(); //update output values
 
 	if (step == 0) {
 		step++;
 		return;
 	}
 
-	double newError = GetError();
+	double newError = GetError(); //get the new error margin
 
-	if (newError > oldError) {
+	if (newError > oldError) { //if the new error is larger than the old error, we revert back to the old network
 		for (int i = 0; i < changedEdges.size(); i++)
 			changedEdges[i]->Revert();
-		UpdateHeldValues();
+		UpdateHeldValues(); //update the output values again for the next loop
 	} else if (step % 100000000)
 		Log("NEW IMPROVED ERROR IS: " + to_string(newError));
 
 	step++;
 }
 
-vector<Edge*> RandomUpdate() {
+vector<Edge*> RandomUpdate() { //random change to all edges
 	vector<Edge*> changedEdges = vector<Edge*>();
 
 	for (int i = 1; i < network.size(); i++) //for all layers (not input)
@@ -46,18 +46,16 @@ vector<Edge*> RandomUpdate() {
 	return changedEdges;
 }
 
-void UpdateHeldValues() {
-	for (int i = 1; i < network.size(); i++)
-		for (int j = 0; j < network[i]->nodeList.size(); j++)
+void UpdateHeldValues() { //update all nodes in the network other than the input layer, this will mainly change the output values
+	for (int i = 1; i < network.size(); i++) //all layers //start at 1 to ignore the input layer
+		for (int j = 0; j < network[i]->nodeList.size(); j++) //all nodes
 			network[i]->nodeList[j]->UpdateHeldValue(j);
 }
 
-double GetError() {
+double GetError() { //get current error by adding up the different between the input layer nodes and respective output layer nodes
 	double resultantError = 0;
 	for (int i = 0; i < network[network.size() - 1]->nodeList.size(); i++) {
-		double difference = network[0]->nodeList[i]->heldValue - network[network.size() - 1]->nodeList[i]->heldValue;
-		if (difference < 0)
-			difference *= -1;
+		double difference = std::abs(network[0]->nodeList[i]->heldValue - network[network.size() - 1]->nodeList[i]->heldValue);
 		resultantError += difference;
 	}
 

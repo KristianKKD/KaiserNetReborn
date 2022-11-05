@@ -8,18 +8,16 @@ static double GetRandomValue() {
 
 	double resultValue = (double(val(rng)) - 10000) / 10000.0;//random value between -1 and 1
 	if (resultValue == 0)
-		return 0.0001;
+		return 0.0001; //avoid 0
 
 	return resultValue;
 }
 
 static double ActivationFunction(double sum) { //relu
 	if (sum > 1)
-		sum = 1;
-	else if (sum == 0)
-		sum = 0.00001;
+		sum = 0.99999;
 	else if (sum < -1)
-		sum = -1;
+		sum = -0.99999;
 
 	return sum;
 }
@@ -38,14 +36,14 @@ public:
 		id = edges++;
 	}
 
-	void Update(double change) {
+	void Update(double change) { //change the weight, save the old one in case we need to revert it
 		previousValue = weight;
 		weight = ActivationFunction(weight + change * LEARNINGRATE);
-		Log(to_string(id) + " was: " + to_string(previousValue) + " is now: " + to_string(weight));
+		//Log(to_string(id) + " was: " + to_string(previousValue) + " is now: " + to_string(weight));
 	}
 
-	void Revert() {
-		Log(to_string(id) + " IS REVERTING FROM: " + to_string(weight) + " TO: " + to_string(previousValue));
+	void Revert() { //revert the weight to the previous value, saved in Update()
+		//Log(to_string(id) + " IS REVERTING FROM: " + to_string(weight) + " TO: " + to_string(previousValue));
 		weight = previousValue;
 	}
 };
@@ -67,21 +65,21 @@ public:
 
 		incomingNodes = previousNodes;
 
-		for (int i = 0; i < previousNodes.size(); i++)
+		for (int i = 0; i < previousNodes.size(); i++) //create an edge to all the previous nodes
 			previousNodes[i]->CreateEdge();
 	}
 
 	void UpdateHeldValue(int nodeIndex) {
 		double result = 0;
 
-		for (int i = 0; i < incomingNodes.size(); i++)
+		for (int i = 0; i < incomingNodes.size(); i++) //get the sum of the input nodes towards this node
 			result += (incomingNodes[i]->GetOutgoingTowards(nodeIndex));
 
 		result += bias;
-		heldValue = ActivationFunction(result);
+		heldValue = ActivationFunction(result); //make sure the node is within our boundaries and make the learning non-linear
 	}
 
-	double GetOutgoingTowards(int nodeID) {
+	double GetOutgoingTowards(int nodeID) { //get the edge value towards the given node
 		return heldValue * outgoingWeights[nodeID]->weight;
 	}
 

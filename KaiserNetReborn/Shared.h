@@ -11,7 +11,6 @@ using std::thread;
 
 int Error(string msg, int code, bool critical);
 void Log(string msg);
-void Log(double val);
 
-#define LEARNINGRATE 0.001
+#define LEARNINGRATE 0.01
 #define MAXSIZE 4

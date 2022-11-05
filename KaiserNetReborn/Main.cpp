@@ -13,27 +13,28 @@ double GetError();
 extern int step;
 
 int main() {
-	Log("KaiserNet REBORN version: 0.0.1");
-	int hiddenLayers = 2;
-	int hiddenNodes = 3;
+	Log("KaiserNet REBORN version: 0.1.0");
+	int hiddenLayers = 5;
+	int hiddenNodes = 5;
 
-	vector<double> targets = { 0.2, 0.9 };
+	vector<double> targets = { 0.2, 0.9, 0.4, 0.1 }; //for now we simply try to recreate the targets that we manually input
 
 	network.push_back(new Layer(targets)); //input layer
 
-	for(int i = 0; i < hiddenLayers; i++)
+	for(int i = 0; i < hiddenLayers; i++) //create the hidden layers
 		network.push_back(new Layer(network[i]->nodeList, hiddenNodes));
 
 	network.push_back(new Layer(network[network.size() - 1]->nodeList, (int)targets.size())); //output layer
 
 	thread inputThread = thread(ReadInput);
 
+	Log("Starting main loop, type 'unpause' to begin...");
 	while (!shuttingDown) {
 		while (pause) {}
-		Learn();
+		Learn(); //learn by updating the nodes and checking if that has reduced the error margin
 	}
 
-	inputThread.join();
+	inputThread.join(); //clean up
 	inputThread.~thread();
 
 	return Error("Exit success!", 0, true);
@@ -54,7 +55,7 @@ void ReadInput() {
 		if (command == "step") {
 			int oldStep = step;
 			pause = false;
-			while (oldStep == step) {}
+			while (oldStep == step) {} //wait for the main loop to complete a step
 			pause = true;
 			Print();
 			Log("-----------------------------------------");
@@ -64,7 +65,7 @@ void ReadInput() {
 	shuttingDown = true;
 }
 
-void Print() {
+void Print() { //print out detailed information about the current network
 	for (int layerIndex = 0; layerIndex < network.size(); layerIndex++) { //layers
 		Layer* l = network[layerIndex];
 		if(layerIndex == 0)
